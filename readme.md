@@ -1,4 +1,16 @@
-Коллекция http запросов:
+## Docker-образ
+
+`docker push alexprokopiev/jr_module3:1.0`
+
+Установка:
+`docker run -itd -p 8080:8080 --name jr_module3_container jr_module3:1.0`
+
+Доступ в Tomcat: логин "admin", пароль "admin"
+
+Примечание: если при запуске не прогрузятся данные (списки учеников, преподавателей и т.д.), прожать URL:
+http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/init
+
+## Коллекция http запросов:
 
 {
 "info": {

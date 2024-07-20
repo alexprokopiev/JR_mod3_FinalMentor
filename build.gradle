@@ -59,11 +59,45 @@ jacoco {
     reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
 }
 
+check {
+    dependsOn jacocoTestCoverageVerification
+}
+
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
     reports {
-        xml.required = false
-        csv.required = false
+        xml.required = true
+        csv.required = true
         html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "org/example/**/servlets/*",
+                    "org/example/**/listener/*",
+                    "org/example/**/models/*",
+                    "org/example/**/consts/*"
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.7
+            }
+        }
+        rule {
+            element = 'CLASS'
+            excludes = ['org.example.jr_mod3_finalmentor.models.*',
+                        'org.example.jr_mod3_finalmentor.listener.*',
+                        'org.example.jr_mod3_finalmentor.consts.*',
+                        'org.example.jr_mod3_finalmentor.servlets.*']
+            limit {
+                minimum = 0.7
+            }
+        }
     }
 }
