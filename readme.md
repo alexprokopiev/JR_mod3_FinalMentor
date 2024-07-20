@@ -10,6 +10,9 @@
 Примечание: если при запуске не прогрузятся данные (списки учеников, преподавателей и т.д.), прожать URL:
 http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/init
 
+## Репорт JaCoCo
+jacoco.html
+
 ## Коллекция http запросов:
 
 {
