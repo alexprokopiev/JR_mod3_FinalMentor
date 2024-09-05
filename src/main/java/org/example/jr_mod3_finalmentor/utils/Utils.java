@@ -1,11 +1,9 @@
 package org.example.jr_mod3_finalmentor.utils;
 
 import jakarta.servlet.http.*;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.example.jr_mod3_finalmentor.models.UtilsExecutable;
-import org.example.jr_mod3_finalmentor.services.GroupService;
 
 import java.util.List;
 import java.util.regex.*;
@@ -14,33 +12,21 @@ import java.util.function.Predicate;
 
 import static org.example.jr_mod3_finalmentor.consts.Constants.*;
 
+@Log4j2
 public class Utils {
 
-    private static final Logger logger = LogManager.getLogger(GroupService.class);
-
     //парсинг ID из URL
-    public static int getId(HttpServletRequest req, HttpServletResponse resp) {
+    public static int getId(String requestUrl) {
         int id = 0;
-        String requestUrl = req.getRequestURL().toString();
         String idAsString = StringUtils.substringBefore(StringUtils.substringAfterLast(requestUrl, "/"), "?");
         if (!idAsString.isEmpty() && !idAsString.equals(STUDENTS)) {
             try {
                 id = Integer.parseInt(idAsString);
             } catch (NumberFormatException e) {
                 id = -1;
-                logger.error(ID_EXTRACT_ERROR);
-                resp.setStatus(400);
             }
         }
         return id;
-    }
-
-    //поиск элемента списка по ID
-    public static UtilsExecutable findListElementById(List<? extends UtilsExecutable> list, int id) {
-        return list.stream()
-                .filter(element -> element.getId() == id)
-                .toList()
-                .getFirst();
     }
 
     //поиск элементов списка по условию
@@ -86,15 +72,10 @@ public class Utils {
     }
 
     //проверка переданных данных на соответствие требованиям системы
-    public static boolean isValidData(String data, String regex, HttpServletResponse resp)
+    public static boolean isValidData(String data, String regex)
     {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(data);
-        if (!matcher.matches()) {
-            logger.error(DATA_FORMAT_ERROR);
-            resp.setStatus(400);
-            return false;
-        }
-        return true;
+        return matcher.matches();
     }
 }

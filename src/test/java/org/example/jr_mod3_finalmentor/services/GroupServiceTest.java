@@ -1,39 +1,39 @@
 package org.example.jr_mod3_finalmentor.services;
 
 import lombok.*;
-import jakarta.servlet.http.*;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.example.jr_mod3_finalmentor.models.*;
+import org.example.jr_mod3_finalmentor.servlets.GroupServlet;
 
-import java.io.*;
 import java.util.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.example.jr_mod3_finalmentor.consts.Constants.*;
+import static org.example.jr_mod3_finalmentor.consts.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class GroupServiceTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    HttpServletRequest testRequest;
-    @Mock
-    HttpServletResponse testResponse;
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     LocalDB testDb;
-
+    JsonMapper mapper;
+    @Mock
+    GroupServlet groupServlet;
+    @Mock
     GroupService testGroupService;
     List <Student> testStudentsList;
     List<Group> testGroupsList;
 
     @BeforeEach
     void setup() {
-        testGroupService = new GroupService();
+        mapper = new JsonMapper();
+        testGroupService = new GroupService(testDb, mapper);
         testStudentsList = new ArrayList<>();
         testGroupsList = new ArrayList<>();
 
@@ -83,102 +83,76 @@ class GroupServiceTest {
     @Test
     @SneakyThrows
     void shouldAddGroupCorrectlyTest() {
-        Mockito.when(testRequest.getReader()).thenReturn(new BufferedReader(new StringReader(TEST_GROUP_JSON)));
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.when(testDb.getProps().getProperty(MIN_GROUP_SIZE)).thenReturn("5");
-        Mockito.when(testDb.getProps().getProperty(MAX_GROUP_SIZE)).thenReturn("30");
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testGroupService.getDb().getProps().getProperty(MIN_GROUP_SIZE)).thenReturn("5");
+        Mockito.when(testGroupService.getDb().getProps().getProperty(MAX_GROUP_SIZE)).thenReturn("30");
 
-        testGroupService.addGroup(testRequest, testResponse, testDb);
+        testGroupService.addGroup(groupServlet, TEST_GROUP_JSON);
 
-        assertEquals(4, testDb.getGroups().getLast().getId());
-        assertEquals("4242", testDb.getGroups().getLast().getGroupNumber());
-        assertEquals(6, testDb.getGroups().getLast().getStudents().size());
+        assertEquals(4, testGroupService.getDb().getGroups().getLast().getId());
+        assertEquals("4242", testGroupService.getDb().getGroups().getLast().getGroupNumber());
+        assertEquals(6, testGroupService.getDb().getGroups().getLast().getStudents().size());
     }
 
     //при ошибке парсинга Group выкидывается ошибка и код статуса resp равен 400
     @Test
     @SneakyThrows
     void shouldThrowExceptionInCaseOfParsingErrorTest() {
-        Mockito.when(testRequest.getReader()).thenReturn(new BufferedReader(new StringReader("{")));
-
-        assertThrows(Exception.class, () -> testGroupService.addGroup(testRequest, testResponse, testDb));
-        verify(testResponse).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testGroupService.addGroup(groupServlet, "{")
+        );
     }
 
     //если данные объекта Group не соответствуют значениям переменных, установленных в properties -> возвращается resp с кодом статуса 400
     @Test
     @SneakyThrows
     void shouldInformAboutAddErrorInCaseOfMismatchPropertyTest() {
-        Mockito.when(testRequest.getReader()).thenReturn(new BufferedReader(new StringReader(TEST_GROUP_JSON)));
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.lenient().when(testDb.getProps().getProperty(MIN_GROUP_SIZE)).thenReturn("7");
-        Mockito.lenient().when(testDb.getProps().getProperty(MAX_GROUP_SIZE)).thenReturn("30");
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
+        Mockito.lenient().when(testGroupService.getDb().getProps().getProperty(MIN_GROUP_SIZE)).thenReturn("7");
+        Mockito.lenient().when(testGroupService.getDb().getProps().getProperty(MAX_GROUP_SIZE)).thenReturn("30");
 
-        testGroupService.addGroup(testRequest, testResponse, testDb);
-
-        verify(testResponse).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testGroupService.addGroup(groupServlet, TEST_GROUP_JSON)
+        );
     }
 
     //в URL передан параметр с фамилией студента -> возвращается список групп с данной фамилией
     @Test
     @SneakyThrows
     void shouldGetGroupsByStudentLastNameCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/groups?lastName=Ситникова";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getParameter(LAST_NAME)).thenReturn("Ситникова");
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        List<Group> testResult = testGroupService.getGroups("Ситникова", null);
 
-        testGroupService.getGroups(testRequest, testResponse, testDb);
-
-        assertTrue(stringWriter.toString().contains(testGroupsList.get(0).toString()));
-        assertFalse(stringWriter.toString().contains(testGroupsList.get(1).toString()));
-        assertTrue(stringWriter.toString().contains(testGroupsList.get(2).toString()));
+        assertTrue(testResult.contains(testGroupsList.get(0)));
+        assertFalse(testResult.contains(testGroupsList.get(1)));
+        assertTrue(testResult.contains(testGroupsList.get(2)));
     }
 
     //в URL передан параметр с номером группы -> возвращается группа с данным номером
     @Test
     @SneakyThrows
     void shouldGetGroupsByGroupNumberCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/groups?groupNumber=33333";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.lenient().when(testRequest.getParameter(GROUP_NUMBER)).thenReturn("33333");
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        List<Group> testResult = testGroupService.getGroups(null, "33333");
 
-        testGroupService.getGroups(testRequest, testResponse, testDb);
-
-        assertFalse(stringWriter.toString().contains(testGroupsList.get(0).toString()));
-        assertFalse(stringWriter.toString().contains(testGroupsList.get(1).toString()));
-        assertTrue(stringWriter.toString().contains(testGroupsList.get(2).toString()));
+        assertFalse(testResult.contains(testGroupsList.get(0)));
+        assertFalse(testResult.contains(testGroupsList.get(1)));
+        assertTrue(testResult.contains(testGroupsList.get(2)));
     }
 
     //в URL передан только /groups -> возвращается список всех групп
     @Test
     @SneakyThrows
     void shouldGetAllGroupsCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/groups";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        List<Group> testResult = testGroupService.getGroups(null, null);
 
-        testGroupService.getGroups(testRequest, testResponse, testDb);
-
-        assertTrue(stringWriter.toString().contains(testGroupsList.get(0).toString()));
-        assertTrue(stringWriter.toString().contains(testGroupsList.get(1).toString()));
-        assertTrue(stringWriter.toString().contains(testGroupsList.get(2).toString()));
+        assertTrue(testResult.contains(testGroupsList.get(0)));
+        assertTrue(testResult.contains(testGroupsList.get(1)));
+        assertTrue(testResult.contains(testGroupsList.get(2)));
     }
 
     //группа под заданным ID существует и студент с заданным ID существует
@@ -192,12 +166,10 @@ class GroupServiceTest {
         testStudentsList.add(testStudent21);
         testStudentsList.add(testStudent42);
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getParameterValues(STUDENT_ID)).thenReturn(testStudentsId);
-        Mockito.when(testDb.getStudents()).thenReturn(testStudentsList);
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testGroupService.getDb().getStudents()).thenReturn(testStudentsList);
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
 
-        testGroupService.editGroup(testRequest, testResponse, testDb);
+        testGroupService.editGroup(groupServlet, testRequestUrl, testStudentsId);
 
         assertTrue(testGroupsList.get(2).getStudents().contains(testStudent21));
         assertTrue(testGroupsList.get(2).getStudents().contains(testStudent42));
@@ -213,14 +185,12 @@ class GroupServiceTest {
         Student testStudent21 = new Student(21, "Александр", "Артёмович", "Ефимов", LocalDate.parse("29.11.2005", DateTimeFormatter.ofPattern("dd.MM.yyyy")), "+79399329849");
         testStudentsList.add(testStudent21);
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getParameterValues(STUDENT_ID)).thenReturn(testStudentsId);
-        Mockito.when(testDb.getStudents()).thenReturn(testStudentsList);
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testGroupService.getDb().getStudents()).thenReturn(testStudentsList);
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
 
-        testGroupService.editGroup(testRequest, testResponse, testDb);
-
-        verify(testResponse).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testGroupService.editGroup(groupServlet, testRequestUrl, testStudentsId)
+        );
     }
 
     //группа под заданным ID существует, но студента с заданным ID не существует
@@ -232,14 +202,12 @@ class GroupServiceTest {
         Student testStudent21 = new Student(21, "Александр", "Артёмович", "Ефимов", LocalDate.parse("29.11.2005", DateTimeFormatter.ofPattern("dd.MM.yyyy")), "+79399329849");
         testStudentsList.add(testStudent21);
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getParameterValues(STUDENT_ID)).thenReturn(testStudentsId);
-        Mockito.when(testDb.getStudents()).thenReturn(testStudentsList);
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testGroupService.getDb().getStudents()).thenReturn(testStudentsList);
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
 
-        testGroupService.editGroup(testRequest, testResponse, testDb);
-
-        verify(testResponse).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testGroupService.editGroup(groupServlet, testRequestUrl, testStudentsId)
+        );
     }
 
     //если группа под заданным ID не существует
@@ -247,12 +215,12 @@ class GroupServiceTest {
     @SneakyThrows
     void shouldInformAboutEditErrorCaseGroupIdIncorrectTest() {
         String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/groups/5?studentId=21&studentId=42";
+        String[] testStudentsId = {"21", "42"};
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testGroupService.getDb().getGroups()).thenReturn(testGroupsList);
 
-        testGroupService.editGroup(testRequest, testResponse, testDb);
-
-        verify(testResponse).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testGroupService.editGroup(groupServlet, testRequestUrl, testStudentsId)
+        );
     }
 }

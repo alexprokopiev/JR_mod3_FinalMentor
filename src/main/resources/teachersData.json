@@ -1,0 +1,95 @@
+[
+  {
+    "id": 1,
+    "fullName": "Леонова Виктория Артемьевна",
+    "age": 50,
+    "subjects": [
+      "ALGEBRA",
+      "GEOMETRY"
+    ],
+    "experience": 25
+  },
+  {
+    "id": 2,
+    "fullName": "Дорохов Константин Денисович",
+    "age": 48,
+    "subjects": [
+      "DRAWING",
+      "MUSIC"
+    ],
+    "experience": 23
+  },
+  {
+    "id": 3,
+    "fullName": "Егорова Анастасия Платоновна",
+    "age": 39,
+    "subjects": [
+      "PHYSICAL_EDUCATION"
+    ],
+    "experience": 10
+  },
+  {
+    "id": 4,
+    "fullName": "Крылова Мария Глебовна",
+    "age": 56,
+    "subjects": [
+      "TECHNOLOGY"
+    ],
+    "experience": 30
+  },
+  {
+    "id": 5,
+    "fullName": "Соловьев Никита Матвеевич",
+    "age": 42,
+    "subjects": [
+      "BIOLOGY",
+      "CHEMISTRY"
+    ],
+    "experience": 18
+  },
+  {
+    "id": 6,
+    "fullName": "Романова Валерия Всеволодовна",
+    "age": 64,
+    "subjects": [
+      "GEOGRAPHY"
+    ],
+    "experience": 34
+  },
+  {
+    "id": 7,
+    "fullName": "Максимова Алиса Давидовна",
+    "age": 48,
+    "subjects": [
+      "HISTORY"
+    ],
+    "experience": 29
+  },
+  {
+    "id": 8,
+    "fullName": "Орлов Константин Константинович",
+    "age": 38,
+    "subjects": [
+      "LITERATURE"
+    ],
+    "experience": 15
+  },
+  {
+    "id": 9,
+    "fullName": "Григорьев Роман Маркович",
+    "age": 30,
+    "subjects": [
+      "PHYSICS"
+    ],
+    "experience": 8
+  },
+  {
+    "id": 10,
+    "fullName": "Савин Фёдор Максимович",
+    "age": 64,
+    "subjects": [
+      "COMPUTER_SCIENCE"
+    ],
+    "experience": 38
+  }
+]

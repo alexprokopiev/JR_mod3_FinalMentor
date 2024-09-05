@@ -1,39 +1,35 @@
 package org.example.jr_mod3_finalmentor.services;
 
-import jakarta.servlet.http.*;
 import lombok.SneakyThrows;
-import org.example.jr_mod3_finalmentor.models.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.example.jr_mod3_finalmentor.models.LocalDB;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.example.jr_mod3_finalmentor.models.*;
+import org.example.jr_mod3_finalmentor.servlets.TimetableServlet;
 
-import java.io.BufferedReader;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import org.example.jr_mod3_finalmentor.models.LocalDB;
+
+
 import java.util.*;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 
-import static org.example.jr_mod3_finalmentor.consts.Constants.*;
-import static org.example.jr_mod3_finalmentor.models.Subject.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
+import static org.example.jr_mod3_finalmentor.models.Subject.*;
+import static org.example.jr_mod3_finalmentor.consts.Constants.*;
+import static org.example.jr_mod3_finalmentor.consts.TestConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class TimetableServiceTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    HttpServletRequest testRequest;
-    @Mock
-    HttpServletResponse testResponse;
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     LocalDB testDb;
+    JsonMapper mapper;
+    @Mock
+    TimetableServlet timetableServlet;
 
     TimetableService testTimetableService;
     List<Lesson> testTimetable;
@@ -43,7 +39,8 @@ class TimetableServiceTest {
 
     @BeforeEach
     void setup() {
-        testTimetableService = new TimetableService();
+        mapper = new JsonMapper();
+        testTimetableService = new TimetableService(testDb, mapper);
         testTimetable = new ArrayList<>();
         testGroupsList = new ArrayList<>();
         testTeachersList = new ArrayList<>();
@@ -77,7 +74,7 @@ class TimetableServiceTest {
         testGroupsList.getFirst().getStudents().add(testStudentsList.get(0));
         testGroupsList.getFirst().getStudents().add(testStudentsList.get(1));
         testGroupsList.getFirst().getStudents().add(testStudentsList.get(2));
-        testGroupsList.get(0).getStudents().add(testStudentsList.get(3));
+        testGroupsList.getFirst().getStudents().add(testStudentsList.get(3));
         testGroupsList.add(new Group(2, "2222", new ArrayList<>()));
         testGroupsList.get(1).getStudents().add(testStudentsList.get(16));
         testGroupsList.get(1).getStudents().add(testStudentsList.get(5));
@@ -108,13 +105,12 @@ class TimetableServiceTest {
     @Test
     @SneakyThrows
     void shouldAddLessonCorrectlyTest() {
-        Mockito.when(testRequest.getReader()).thenReturn(new BufferedReader(new StringReader(TEST_LESSON_JSON)));
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.when(testDb.getTeachers()).thenReturn(testTeachersList);
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testDb.getProps().getProperty(MAX_NUMBER_OF_LESSONS)).thenReturn("5");
+        Mockito.when(testTimetableService.getDb().getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testTimetableService.getDb().getTeachers()).thenReturn(testTeachersList);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
+        Mockito.when(testTimetableService.getDb().getProps().getProperty(MAX_NUMBER_OF_LESSONS)).thenReturn("5");
 
-        testTimetableService.addLesson(testRequest, testResponse, testDb);
+        testTimetableService.addLesson(timetableServlet, TEST_LESSON_JSON);
 
         assertEquals(9, testTimetable.getLast().getId());
         assertEquals("2024-07-02T13:00", testTimetable.getLast().getStartTime().toString());
@@ -127,153 +123,122 @@ class TimetableServiceTest {
     @Test
     @SneakyThrows
     void shouldThrowExceptionInCaseOfParsingErrorTest() {
-        Mockito.when(testRequest.getReader()).thenReturn(new BufferedReader(new StringReader("{")));
-
-        assertThrows(Exception.class, () -> testTimetableService.addLesson(testRequest, testResponse, testDb));
-        verify(testResponse).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testTimetableService.addLesson(timetableServlet, "{")
+        );
     }
 
     //если данные объекта Lesson не соответствуют значениям переменных, установленных в properties -> возвращается resp с кодом статуса 400
     @Test
     @SneakyThrows
     void shouldInformAboutAddErrorInCaseOfMismatchPropertyTest() {
-        Mockito.when(testRequest.getReader()).thenReturn(new BufferedReader(new StringReader(TEST_LESSON_JSON)));
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.when(testDb.getProps().getProperty(MAX_NUMBER_OF_LESSONS)).thenReturn("1");
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
+        Mockito.when(testTimetableService.getDb().getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testTimetableService.getDb().getProps().getProperty(MAX_NUMBER_OF_LESSONS)).thenReturn("1");
 
-        testTimetableService.addLesson(testRequest, testResponse, testDb);
-
-        verify(testResponse).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testTimetableService.addLesson(timetableServlet, TEST_LESSON_JSON)
+        );
     }
 
     //если в URL передан параметр с номером группы
     @Test
     @SneakyThrows
     void shouldGetTimetableByGroupNumberCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable?groupNumber=2222";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        String[] parameters = {"2222", null, null, null};
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getParameter(GROUP_NUMBER)).thenReturn("2222");
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.getTimetable(testRequest, testResponse, testDb);
+        List<Lesson> testResult = testTimetableService.getTimetable(parameters);
 
-        assertFalse(stringWriter.toString().contains(testTimetable.get(0).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(1).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(2).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(3).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(4).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(5).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(6).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(7).toString()));
+        assertFalse(testResult.contains(testTimetable.get(0)));
+        assertTrue(testResult.contains(testTimetable.get(1)));
+        assertTrue(testResult.contains(testTimetable.get(2)));
+        assertFalse(testResult.contains(testTimetable.get(3)));
+        assertFalse(testResult.contains(testTimetable.get(4)));
+        assertTrue(testResult.contains(testTimetable.get(5)));
+        assertTrue(testResult.contains(testTimetable.get(6)));
+        assertFalse(testResult.contains(testTimetable.get(7)));
     }
 
     //если в URL передан параметр с фамилией студента
     @Test
     @SneakyThrows
     void shouldGetTimetableByStudentLastNameCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable?lastName=Ситникова";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        String[] parameters = {null, "Ситникова", null, null};
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.lenient().when(testRequest.getParameter(LAST_NAME)).thenReturn("Ситникова");
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.getTimetable(testRequest, testResponse, testDb);
+        List<Lesson> testResult = testTimetableService.getTimetable(parameters);
 
-        assertTrue(stringWriter.toString().contains(testTimetable.get(0).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(1).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(2).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(3).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(4).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(5).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(6).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(7).toString()));
+        assertTrue(testResult.contains(testTimetable.get(0)));
+        assertFalse(testResult.contains(testTimetable.get(1)));
+        assertFalse(testResult.contains(testTimetable.get(2)));
+        assertTrue(testResult.contains(testTimetable.get(3)));
+        assertTrue(testResult.contains(testTimetable.get(4)));
+        assertFalse(testResult.contains(testTimetable.get(5)));
+        assertFalse(testResult.contains(testTimetable.get(6)));
+        assertTrue(testResult.contains(testTimetable.get(7)));
     }
 
     //если в URL передан параметр с ФИО преподавателя
     @Test
     @SneakyThrows
     void shouldGetTimetableByTeacherNameCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable?fullName=Егорова Анастасия Платоновна";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        String[] parameters = {null, null, "Егорова Анастасия Платоновна", null};
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.lenient().when(testRequest.getParameter(FULL_NAME)).thenReturn("Егорова Анастасия Платоновна");
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.getTimetable(testRequest, testResponse, testDb);
+        List<Lesson> testResult = testTimetableService.getTimetable(parameters);
 
-        assertFalse(stringWriter.toString().contains(testTimetable.get(0).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(1).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(2).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(3).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(4).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(5).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(6).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(7).toString()));
+        assertFalse(testResult.contains(testTimetable.get(0)));
+        assertFalse(testResult.contains(testTimetable.get(1)));
+        assertTrue(testResult.contains(testTimetable.get(2)));
+        assertFalse(testResult.contains(testTimetable.get(3)));
+        assertFalse(testResult.contains(testTimetable.get(4)));
+        assertTrue(testResult.contains(testTimetable.get(5)));
+        assertFalse(testResult.contains(testTimetable.get(6)));
+        assertFalse(testResult.contains(testTimetable.get(7)));
     }
 
     //если в URL передан параметр с датой занятий
     @Test
     @SneakyThrows
     void shouldGetTimetableByDateCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable?date=2024-07-02";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        String[] parameters = {null, null, null, "2024-07-02"};
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.lenient().when(testRequest.getParameter(DATE)).thenReturn("2024-07-02");
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.getTimetable(testRequest, testResponse, testDb);
+        List<Lesson> testResult = testTimetableService.getTimetable(parameters);
 
-        assertFalse(stringWriter.toString().contains(testTimetable.get(0).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(1).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(2).toString()));
-        assertFalse(stringWriter.toString().contains(testTimetable.get(3).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(4).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(5).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(6).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(7).toString()));
+        assertFalse(testResult.contains(testTimetable.get(0)));
+        assertFalse(testResult.contains(testTimetable.get(1)));
+        assertFalse(testResult.contains(testTimetable.get(2)));
+        assertFalse(testResult.contains(testTimetable.get(3)));
+        assertTrue(testResult.contains(testTimetable.get(4)));
+        assertTrue(testResult.contains(testTimetable.get(5)));
+        assertTrue(testResult.contains(testTimetable.get(6)));
+        assertTrue(testResult.contains(testTimetable.get(7)));
     }
 
     //если в URL только /timetable
     @Test
     @SneakyThrows
     void shouldGetFullTimetableCorrectlyTest() {
-        String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable";
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        String[] parameters = {null, null, null, null};
 
-        Mockito.lenient().when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getHeader("User-Agent")).thenReturn("Postman");
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testResponse.getWriter()).thenReturn(printWriter);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.getTimetable(testRequest, testResponse, testDb);
+        List<Lesson> testResult = testTimetableService.getTimetable(parameters);
 
-        assertTrue(stringWriter.toString().contains(testTimetable.get(0).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(1).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(2).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(3).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(4).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(5).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(6).toString()));
-        assertTrue(stringWriter.toString().contains(testTimetable.get(7).toString()));
+        assertTrue(testResult.contains(testTimetable.get(0)));
+        assertTrue(testResult.contains(testTimetable.get(1)));
+        assertTrue(testResult.contains(testTimetable.get(2)));
+        assertTrue(testResult.contains(testTimetable.get(3)));
+        assertTrue(testResult.contains(testTimetable.get(4)));
+        assertTrue(testResult.contains(testTimetable.get(5)));
+        assertTrue(testResult.contains(testTimetable.get(6)));
+        assertTrue(testResult.contains(testTimetable.get(7)));
     }
 
     //если занятие под заданным ID существует
@@ -281,23 +246,19 @@ class TimetableServiceTest {
     @SneakyThrows
     void shouldEditLessonCorrectlyTest() {
         String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable/5?groupId=1&teacherId=2&startTime=2024-07-02 14:45&endTime=2024-07-02 16:15";
+        String[] parameters = {"1", "2", "2024-07-02 14:45", "2024-07-02 16:15"};
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testRequest.getParameter(GROUP_ID)).thenReturn("1");
-        Mockito.when(testRequest.getParameter(TEACHER_ID)).thenReturn("2");
-        Mockito.when(testRequest.getParameter(START_TIME)).thenReturn("2024-07-02 14:45");
-        Mockito.when(testRequest.getParameter(END_TIME)).thenReturn("2024-07-02 16:15");
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testDb.getGroups()).thenReturn(testGroupsList);
-        Mockito.when(testDb.getTeachers()).thenReturn(testTeachersList);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
+        Mockito.when(testTimetableService.getDb().getGroups()).thenReturn(testGroupsList);
+        Mockito.when(testTimetableService.getDb().getTeachers()).thenReturn(testTeachersList);
 
-        testTimetableService.editLesson(testRequest, testResponse, testDb);
+        testTimetableService.editLesson(timetableServlet, testRequestUrl, parameters);
 
-        assertEquals(5, testDb.getTimetable().get(4).getId());
-        assertEquals(1, testDb.getTimetable().get(4).getGroup().getId());
-        assertEquals(2, testDb.getTimetable().get(4).getTeacher().getId());
-        assertEquals("2024-07-02T14:45", testDb.getTimetable().get(4).getStartTime().toString());
-        assertEquals("2024-07-02T16:15", testDb.getTimetable().get(4).getEndTime().toString());
+        assertEquals(5, testTimetableService.getDb().getTimetable().get(4).getId());
+        assertEquals(1, testTimetableService.getDb().getTimetable().get(4).getGroup().getId());
+        assertEquals(2, testTimetableService.getDb().getTimetable().get(4).getTeacher().getId());
+        assertEquals("2024-07-02T14:45", testTimetableService.getDb().getTimetable().get(4).getStartTime().toString());
+        assertEquals("2024-07-02T16:15", testTimetableService.getDb().getTimetable().get(4).getEndTime().toString());
     }
 
     //при ошибке парсинга ID занятия код статуса resp равен 400
@@ -305,13 +266,13 @@ class TimetableServiceTest {
     @SneakyThrows
     void shouldInformAboutEditErrorInCaseOfParsingIdErrorTest() {
         String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable/id?groupId=1&teacherId=2&startTime=2024-07-02 14:45&endTime=2024-07-02 16:15";
+        String[] parameters = {null, null, null, null};
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.editLesson(testRequest, testResponse, testDb);
-
-        verify(testResponse, atLeastOnce()).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testTimetableService.editLesson(timetableServlet, testRequestUrl, parameters)
+        );
     }
 
     //при ошибке парсинга GroupID занятия код статуса resp равен 400
@@ -319,14 +280,13 @@ class TimetableServiceTest {
     @SneakyThrows
     void shouldInformAboutEditErrorInCaseOfParsingGroupIdErrorTest() {
         String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable/5?groupId=id&teacherId=2&startTime=2024-07-02 14:45&endTime=2024-07-02 16:15";
+        String[] parameters = {"id", null, null, null};
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.when(testRequest.getParameter(GROUP_ID)).thenReturn("id");
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.editLesson(testRequest, testResponse, testDb);
-
-        verify(testResponse, atLeastOnce()).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testTimetableService.editLesson(timetableServlet, testRequestUrl, parameters)
+        );
     }
 
     //при ошибке парсинга TeacherID занятия код статуса resp равен 400
@@ -334,13 +294,12 @@ class TimetableServiceTest {
     @SneakyThrows
     void shouldInformAboutEditErrorInCaseOfParsingTeacherIdErrorTest() {
         String testRequestUrl = "http://localhost:8080/Gradle___org_example___JR_mod3_FinalMentor_1_0_SNAPSHOT_war/timetable/5?groupId=1&teacherId=id&startTime=2024-07-02 14:45&endTime=2024-07-02 16:15";
+        String[] parameters = {null, "id", null, null};
 
-        Mockito.when(testRequest.getRequestURL().toString()).thenReturn(testRequestUrl);
-        Mockito.when(testDb.getTimetable()).thenReturn(testTimetable);
-        Mockito.lenient().when(testRequest.getParameter(TEACHER_ID)).thenReturn("id");
+        Mockito.when(testTimetableService.getDb().getTimetable()).thenReturn(testTimetable);
 
-        testTimetableService.editLesson(testRequest, testResponse, testDb);
-
-        verify(testResponse, atLeastOnce()).setStatus(400);
+        assertThrows(Exception.class, () ->
+                testTimetableService.editLesson(timetableServlet, testRequestUrl, parameters)
+        );
     }
 }

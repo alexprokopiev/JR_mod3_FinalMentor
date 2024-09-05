@@ -48,24 +48,6 @@
             </tr>
             </thead>
             <tbody>
-            <c:set var="singleStudent" value="${student}"/>
-            <c:if test = "${singleStudent != null}">
-                <tr>
-                    <td>${singleStudent.lastName}</td>
-                    <td>${singleStudent.name}</td>
-                    <td>${singleStudent.patronymic}</td>
-                    <td>${singleStudent.birthDate}</td>
-                    <td>${singleStudent.phoneNumber}</td>
-                    <td>
-                        <span style="display:none">${singleStudent.id}</span>
-                        <button class="btn btn-outline-primary btn-sm" onclick="openStudentEditor(this)">Редактировать</button>
-                    </td>
-                    <td>
-                        <span style="display:none">${singleStudent.id}</span>
-                        <button class="btn btn-outline-primary btn-sm" onclick="deleteStudent(this)">Удалить</button>
-                    </td>
-                </tr>
-            </c:if>
             <c:forEach var="student" items="${students}">
                 <tr>
                     <td>${student.lastName}</td>

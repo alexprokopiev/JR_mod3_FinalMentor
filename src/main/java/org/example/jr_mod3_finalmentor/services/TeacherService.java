@@ -1,85 +1,82 @@
 package org.example.jr_mod3_finalmentor.services;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.*;
-import org.apache.logging.log4j.*;
-import org.example.jr_mod3_finalmentor.models.*;
-import org.example.jr_mod3_finalmentor.utils.Utils;
+import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.example.jr_mod3_finalmentor.models.*;
+import org.example.jr_mod3_finalmentor.utils.Utils;
+import org.example.jr_mod3_finalmentor.servlets.TeacherServlet;
 
 import java.util.List;
-import java.io.IOException;
-import java.util.stream.Collectors;
+import java.security.InvalidParameterException;
 
 import static org.example.jr_mod3_finalmentor.consts.Constants.*;
 
+@Log4j2
+@Getter
+@AllArgsConstructor
 public class TeacherService {
 
-    private static final Logger logger = LogManager.getLogger(TeacherService.class);
+    private final LocalDB db;
+    private final JsonMapper mapper;
 
-    public void addTeacher(HttpServletRequest req, HttpServletResponse resp, LocalDB db) throws IOException {
-        //создание преобразователя json -> java-объект
-        JsonMapper mapper = new JsonMapper();
+    public void addTeacher(TeacherServlet teacherServlet, String requestBody) {
         //создание объекта Teacher
-        Teacher teacher = new Teacher();
-        //получение тела запроса
-        String requestBody = req.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+        Teacher teacher;
         try {
             //чтение json в объект
             teacher = mapper.readValue(requestBody, Teacher.class);
         } catch (JsonProcessingException e) {
             //обработка ошибки чтения json
-            logger.error(JSON_PARSING_ERROR);
-            resp.setStatus(400);
+            teacherServlet.setErrorMessage(JSON_PARSING_ERROR);
+            throw new InvalidParameterException();
         }
         //валидация распарсенных данных объекта Teacher
-        if (isValidTeacherData(teacher, resp)) {
+        if (Utils.isValidData(teacher.getFullName(), NAME_REGEX)) {
             //поиск и установка уникального ID для объекта Teacher
             teacher.setId(Utils.findUniqueId(db.getTeachers()));
             //добавление объекта в общий список
             db.getTeachers().add(teacher);
             //установка статуса http ответа
-            logger.info(ADD_TEACHER_MSG, teacher.getFullName());
-            resp.setStatus(201);
+            log.info(ADD_TEACHER_MSG, teacher.getFullName());
+        } else {
+            teacherServlet.setErrorMessage(STUDENT_FIND_ERROR);
+            throw new InvalidParameterException();
         }
     }
 
-    public void getTeachers(HttpServletRequest req, HttpServletResponse resp, LocalDB db) throws IOException, ServletException {
+    public List<Teacher> getTeachers() {
         //валидация и парсинг URL - не требуется
         //получение списка всех преподавателей и отправка http ответа
         List<Teacher> teachers = db.getTeachers();
-        logger.info(GET_TEACHER_MSG);
-        if (req.getHeader("User-Agent").startsWith("Postman")) Utils.getJson(resp, teachers.toString());
-        else {
-            req.setAttribute(TEACHERS, teachers);
-            req.getRequestDispatcher(TEACHERS_JSP).forward(req, resp);
-        }
+        log.info(GET_TEACHER_MSG);
+        return teachers;
     }
 
-    public void editTeacher(HttpServletRequest req, HttpServletResponse resp, LocalDB db) {
+    public void editTeacher(TeacherServlet teacherServlet, String requestUrl, String subjectAsString) {
         //валидация и парсинг URL
-        int teacherId = Utils.getId(req, resp);
-        String subjectAsString = req.getParameter(SUBJECT);
+        int teacherId = Utils.getId(requestUrl);
+        if (teacherId == -1) {
+            teacherServlet.setErrorMessage(ID_EXTRACT_ERROR);
+            throw new NumberFormatException();
+        }
         List<Teacher> teachers = db.getTeachers();
         //если преподаватель под заданным ID существует
         if (Utils.isExistId(teachers, teacherId)) {
-            Teacher filteredTeacher = (Teacher) Utils.findListElementById(teachers, teacherId);
-            try {filteredTeacher.getSubjects().add(Subject.valueOf(subjectAsString.toUpperCase()));}
-            catch (IllegalArgumentException e) {
-                logger.error(SUBJECT_ERROR);
-                resp.setStatus(400);
+            Teacher filteredTeacher = Utils.findListElementsByParameter(teachers, student -> student.getId() == teacherId).getFirst();
+            try {
+                filteredTeacher.getSubjects().add(Subject.valueOf(subjectAsString.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                teacherServlet.setErrorMessage(SUBJECT_ERROR);
+                throw new InvalidParameterException();
             }
-            logger.info(EDIT_TEACHER_MSG, filteredTeacher.getFullName());
+            log.info(EDIT_TEACHER_MSG, filteredTeacher.getFullName());
         //если преподавателя под заданным ID не существует
         } else {
-            logger.error(TEACHER_FIND_ERROR);
-            resp.setStatus(400);
+            teacherServlet.setErrorMessage(TEACHER_FIND_ERROR);
+            throw new InvalidParameterException();
         }
-    }
-
-    //валидация данных объекта Teacher
-    private boolean isValidTeacherData(Teacher teacher, HttpServletResponse resp) {
-        return Utils.isValidData(teacher.getFullName(), NAME_REGEX, resp);
     }
 }

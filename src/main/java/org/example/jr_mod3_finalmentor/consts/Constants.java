@@ -1,11 +1,24 @@
 package org.example.jr_mod3_finalmentor.consts;
 
 public class Constants {
-    //путь к файлу properties
+    //пути к файлам с данными
     public static final String PROPS_PATH = "/config.properties";
+    public static final String STUDENTS_DATA_PATH = "/studentsData.json";
+    public static final String TEACHERS_DATA_PATH = "/teachersData.json";
+    public static final String TIMETABLE_DATA_PATH = "/timetableData.json";
 
     //"база данных"
     public static final String LOCAL_DB = "db";
+
+    //маппер
+    public static final String JSON_MAPPER = "JSON mapper";
+
+    //сервисы
+    public static final String INIT_SERVICE = "Init service";
+    public static final String STUDENT_SERVICE = "Student service";
+    public static final String TEACHER_SERVICE = "Teacher service";
+    public static final String GROUP_SERVICE = "Group service";
+    public static final String TIMETABLE_SERVICE = "Timetable service";
 
     //регулярные выражения и паттерны
     public static final String NAME_REGEX = "^[А-ЯЁа-яё\\ \\`\\-]+$";
@@ -30,7 +43,6 @@ public class Constants {
     public static final String PHONE_NUMBER = "phoneNumber";
     public static final String SUBJECT = "subject";
     public static final String GROUP_NUMBER = "groupNumber";
-    public static final String STUDENT = "student";
     public static final String STUDENT_ID = "studentId";
     public static final String FULL_NAME = "fullName";
     public static final String DATE = "date";
@@ -56,6 +68,7 @@ public class Constants {
     public static final String LESSON_FIND_ERROR = "Class with the specified ID was not found";
     public static final String SUBJECT_ERROR = "The subject is not on the list of subjects";
     public static final String PROPERTIES_ERROR = "Configuration file could not be found";
+    public static final String FILE_READ_ERROR = "File could not be read";
     public static final String JSON_PARSING_ERROR = "The data sent to the server contains an error";
     public static final String DATE_PARSING_ERROR = "Date of birth information contains an error";
     public static final String DATE_TIME_PARSING_ERROR = "The class date information contains an error";
@@ -76,90 +89,6 @@ public class Constants {
     public static final String ADD_LESSON_MSG = "A class for the group [{}] has been added to the schedule, which will be held [{}]";
     public static final String GET_TIMETABLE_MSG = "A request to retrieve the class schedule has been fulfilled";
     public static final String EDIT_LESSON_MSG = "Updated the class for the group [{}], which will be held [{}]";
-
-    //тестовые данные
-    public static final String TEST_STUDENT_JSON = "{\n" +
-            "    \"name\": \"Александр\",\n" +
-            "    \"patronymic\": \"Николаевич\",\n" +
-            "    \"lastName\": \"Прокопьев\",\n" +
-            "    \"birthDate\": \"1986-08-09\",\n" +
-            "    \"phoneNumber\": \"+79091409294\"\n" +
-            "}";
-    public static final String TEST_INCORRECT_STUDENT_JSON = "{\n" +
-            "    \"name\": \"123\",\n" +
-            "    \"patronymic\": \"123\",\n" +
-            "    \"lastName\": \"123\",\n" +
-            "    \"birthDate\": \"1986-08-09\",\n" +
-            "    \"phoneNumber\": \"123\"\n" +
-            "}";
-    public static final String TEST_TEACHER_JSON = "{\n" +
-            "    \"fullName\": \"Абрамов Виктор Степанович\",\n" +
-            "    \"age\": 30,\n" +
-            "    \"subjects\": [\n" +
-            "        \"COMPUTER_SCIENCE\",\n" +
-            "        \"PHYSICAL_EDUCATION\"\n" +
-            "    ],\n" +
-            "    \"experience\": 9\n" +
-            "}";
-    public static final String TEST_GROUP_JSON = "{\n" +
-            "    \"groupNumber\": \"4242\",\n" +
-            "    \"students\": [\n" +
-            "        {\n" +
-            "            \"id\": 1,\n" +
-            "            \"name\": \"Захар\",\n" +
-            "            \"patronymic\": \"Степанович\",\n" +
-            "            \"lastName\": \"Шаповалов\",\n" +
-            "            \"birthDate\": \"2006-04-04\",\n" +
-            "            \"phoneNumber\": \"+79911556928\"\n" +
-            "        },\n" +
-            "        {\n" +
-            "            \"id\": 2,\n" +
-            "            \"name\": \"Платон\",\n" +
-            "            \"patronymic\": \"Михайлович\",\n" +
-            "            \"lastName\": \"Попов\",\n" +
-            "            \"birthDate\": \"2010-06-01\",\n" +
-            "            \"phoneNumber\": \"+79884197690\"\n" +
-            "        },\n" +
-            "        {\n" +
-            "            \"id\": 1,\n" +
-            "            \"name\": \"Захар\",\n" +
-            "            \"patronymic\": \"Степанович\",\n" +
-            "            \"lastName\": \"Шаповалов\",\n" +
-            "            \"birthDate\": \"2006-04-04\",\n" +
-            "            \"phoneNumber\": \"+79911556928\"\n" +
-            "        },\n" +
-            "        {\n" +
-            "            \"id\": 2,\n" +
-            "            \"name\": \"Платон\",\n" +
-            "            \"patronymic\": \"Михайлович\",\n" +
-            "            \"lastName\": \"Попов\",\n" +
-            "            \"birthDate\": \"2010-06-01\",\n" +
-            "            \"phoneNumber\": \"+79884197690\"\n" +
-            "        },\n" +
-            "        {\n" +
-            "            \"id\": 1,\n" +
-            "            \"name\": \"Захар\",\n" +
-            "            \"patronymic\": \"Степанович\",\n" +
-            "            \"lastName\": \"Шаповалов\",\n" +
-            "            \"birthDate\": \"2006-04-04\",\n" +
-            "            \"phoneNumber\": \"+79911556928\"\n" +
-            "        },\n" +
-            "        {\n" +
-            "            \"id\": 2,\n" +
-            "            \"name\": \"Платон\",\n" +
-            "            \"patronymic\": \"Михайлович\",\n" +
-            "            \"lastName\": \"Попов\",\n" +
-            "            \"birthDate\": \"2010-06-01\",\n" +
-            "            \"phoneNumber\": \"+79884197690\"\n" +
-            "        }\n" +
-            "    ]\n" +
-            "}";
-    public static final String TEST_LESSON_JSON = "{\n" +
-            "    \"groupId\": 3,\n" +
-            "    \"teacherId\": 1,\n" +
-            "    \"startTime\": \"2024-07-02 13:00\",\n" +
-            "    \"endTime\": \"2024-07-02 14:30\"\n" +
-            "}";
 
     //jsp страницы
     public static final String INDEX_JSP = "/index.jsp";
