@@ -1,0 +1,290 @@
+[
+  {
+    "groupId": 1,
+    "teacherId": 1,
+    "startTime": "2024-07-01 09:00",
+    "endTime": "2024-07-01 10:30"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 2,
+    "startTime": "2024-07-01 10:45",
+    "endTime": "2024-07-01 12:15"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 3,
+    "startTime": "2024-07-01 13:00",
+    "endTime": "2024-07-01 14:30"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 4,
+    "startTime": "2024-07-01 14:45",
+    "endTime": "2024-07-01 16:15"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 5,
+    "startTime": "2024-07-01 09:00",
+    "endTime": "2024-07-01 10:30"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 6,
+    "startTime": "2024-07-01 10:45",
+    "endTime": "2024-07-01 12:15"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 7,
+    "startTime": "2024-07-01 13:00",
+    "endTime": "2024-07-01 14:30"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 8,
+    "startTime": "2024-07-01 14:45",
+    "endTime": "2024-07-01 16:15"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 9,
+    "startTime": "2024-07-01 09:00",
+    "endTime": "2024-07-01 10:30"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 10,
+    "startTime": "2024-07-01 10:45",
+    "endTime": "2024-07-01 12:15"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 1,
+    "startTime": "2024-07-01 13:00",
+    "endTime": "2024-07-01 14:30"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 2,
+    "startTime": "2024-07-01 14:45",
+    "endTime": "2024-07-01 16:15"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 3,
+    "startTime": "2024-07-01 09:00",
+    "endTime": "2024-07-01 10:30"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 4,
+    "startTime": "2024-07-01 10:45",
+    "endTime": "2024-07-01 12:15"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 5,
+    "startTime": "2024-07-01 13:00",
+    "endTime": "2024-07-01 14:30"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 6,
+    "startTime": "2024-07-01 14:45",
+    "endTime": "2024-07-01 16:15"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 7,
+    "startTime": "2024-07-02 09:00",
+    "endTime": "2024-07-02 10:30"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 8,
+    "startTime": "2024-07-02 10:45",
+    "endTime": "2024-07-02 12:15"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 9,
+    "startTime": "2024-07-02 13:00",
+    "endTime": "2024-07-02 14:30"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 10,
+    "startTime": "2024-07-02 14:45",
+    "endTime": "2024-07-02 16:15"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 1,
+    "startTime": "2024-07-02 09:00",
+    "endTime": "2024-07-02 10:30"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 2,
+    "startTime": "2024-07-02 10:45",
+    "endTime": "2024-07-02 12:15"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 3,
+    "startTime": "2024-07-02 13:00",
+    "endTime": "2024-07-02 14:30"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 4,
+    "startTime": "2024-07-02 14:45",
+    "endTime": "2024-07-02 16:15"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 5,
+    "startTime": "2024-07-02 09:00",
+    "endTime": "2024-07-02 10:30"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 6,
+    "startTime": "2024-07-02 10:45",
+    "endTime": "2024-07-02 12:15"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 7,
+    "startTime": "2024-07-02 13:00",
+    "endTime": "2024-07-02 14:30"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 8,
+    "startTime": "2024-07-02 14:45",
+    "endTime": "2024-07-02 16:15"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 9,
+    "startTime": "2024-07-02 09:00",
+    "endTime": "2024-07-02 10:30"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 10,
+    "startTime": "2024-07-02 10:45",
+    "endTime": "2024-07-02 12:15"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 1,
+    "startTime": "2024-07-02 13:00",
+    "endTime": "2024-07-02 14:30"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 2,
+    "startTime": "2024-07-02 14:45",
+    "endTime": "2024-07-02 16:15"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 3,
+    "startTime": "2024-07-03 09:00",
+    "endTime": "2024-07-03 10:30"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 4,
+    "startTime": "2024-07-03 10:45",
+    "endTime": "2024-07-03 12:15"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 5,
+    "startTime": "2024-07-03 13:00",
+    "endTime": "2024-07-03 14:30"
+  },
+  {
+    "groupId": 1,
+    "teacherId": 6,
+    "startTime": "2024-07-03 14:45",
+    "endTime": "2024-07-03 16:15"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 7,
+    "startTime": "2024-07-03 09:00",
+    "endTime": "2024-07-03 10:30"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 8,
+    "startTime": "2024-07-03 10:45",
+    "endTime": "2024-07-03 12:15"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 9,
+    "startTime": "2024-07-03 13:00",
+    "endTime": "2024-07-03 14:30"
+  },
+  {
+    "groupId": 2,
+    "teacherId": 10,
+    "startTime": "2024-07-03 14:45",
+    "endTime": "2024-07-03 16:15"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 1,
+    "startTime": "2024-07-03 09:00",
+    "endTime": "2024-07-03 10:30"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 2,
+    "startTime": "2024-07-03 10:45",
+    "endTime": "2024-07-03 12:15"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 3,
+    "startTime": "2024-07-03 13:00",
+    "endTime": "2024-07-03 14:30"
+  },
+  {
+    "groupId": 3,
+    "teacherId": 4,
+    "startTime": "2024-07-03 14:45",
+    "endTime": "2024-07-03 16:15"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 5,
+    "startTime": "2024-07-03 09:00",
+    "endTime": "2024-07-03 10:30"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 6,
+    "startTime": "2024-07-03 10:45",
+    "endTime": "2024-07-03 12:15"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 7,
+    "startTime": "2024-07-03 13:00",
+    "endTime": "2024-07-03 14:30"
+  },
+  {
+    "groupId": 4,
+    "teacherId": 8,
+    "startTime": "2024-07-03 14:45",
+    "endTime": "2024-07-03 16:15"
+  }
+]
